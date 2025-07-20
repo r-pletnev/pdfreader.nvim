@@ -3,6 +3,7 @@
 Read and navigate PDF documents **without leaving Neovim**.  
 pdfreader.nvim renders PDF pages directly in the terminal (via Kitty’s graphics
 protocol).
+![demo](https://github.com/user-attachments/assets/5a98c65f-650b-4548-b130-ee3118ac5e86)
 
 ---
 
