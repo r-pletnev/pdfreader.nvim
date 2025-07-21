@@ -15,6 +15,7 @@ M.setup = function(opts)
 		pattern = "*.pdf",
 		group = group,
 		callback = function()
+			state:validate()
 			local buffer = vim.api.nvim_get_current_buf()
 			local book = state:get_book_from_buffer_var(buffer)
 			if book then

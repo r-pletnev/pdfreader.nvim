@@ -12,6 +12,7 @@ protocol).
 * Render PDF pages in **standard**, **dark**, or **text-only** mode.
 * **Bookmarks**
 * **Telescope.nvim** integration.
+* Works on Mac and Linux.
 
 ## 📋 Requirements
 

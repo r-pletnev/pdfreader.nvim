@@ -31,7 +31,6 @@ function State.new(opts)
 	local opts = opts or State.default_options
 	self.books = {}
 	self.opts = opts
-	self:validate()
 	return self
 end
 
@@ -39,10 +38,9 @@ function State:validate()
 	validation.check_depencencies()
 	if not validation.is_kitty_term() then
 		vim.notify(
-			"PDFReader DEPENDENCY MISSING ERROR: kitty terminal is require for image rendering!",
+			"PDFReader DEPENDENCY MISSING ERROR: kitty terminal is require for image rendering - works only in text mode",
 			vim.log.levels.WARN
 		)
-		vim.notify("PDFReader will works only in text mode", vim.log.levels.WARN)
 		self:set_mode(utils.VIEW_MODES.text)
 	end
 end
