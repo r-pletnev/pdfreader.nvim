@@ -42,21 +42,6 @@ If Kitty is unavailable, the plugin will automatically work in *text* mode only.
 }
 ```
 
-### packer.nvim
-
-```lua
-use {
-  "r-pletnev/pdfreader.nvim",
-  requires = {
-    "folke/snacks.nvim", -- image rendering
-    "nvim-telescope/telescope.nvim", -- pickers
-  },
-  config = function()
-    require("pdfreader").setup()
-  end,
-}
-```
-
 ## 🚀 Usage
 
 Open a PDF as you would any file:
