@@ -1,11 +1,23 @@
+local M = {}
+
+local telescope_ok = pcall(require, "telescope")
+if not telescope_ok then
+	local function warn()
+		vim.notify("PDFReader: telescope.nvim is not installed. Pickers are disabled.", vim.log.levels.WARN)
+	end
+
+	M.telescope_bookmark_picker = warn
+	M.telescope_recent_books_picker = warn
+	M.telescope_toc_picker = warn
+
+	return M
+end
+
 local actions = require("telescope.actions")
 local action_state = require("telescope.actions.state")
 local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
-local conf = require("telescope.config").values
 local previewers = require("telescope.previewers")
-
-local M = {}
 
 M.telescope_bookmark_picker = function(
 	title,
