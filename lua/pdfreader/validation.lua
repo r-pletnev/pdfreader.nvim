@@ -1,19 +1,16 @@
 local M = {}
 
-M.is_kitty_term = function()
-	if os.getenv("KITTY_WINDOW_ID") then
-		return true
+local supported_terminals = { "kitty", "ghostty" }
+
+M.is_supported_terminal = function()
+	for _, name in ipairs(supported_terminals) do
+		if os.getenv("TERM"):find(name) then
+			return true
+		end
 	end
 
 	if os.getenv("TMUX") then
-		local handle = io.popen("tmux show-environment -g KITTY_WINDOW_ID 2>/dev/null")
-		if handle then
-			local out = handle:read("*a")
-			handle:close()
-			if out and out:match("=") then
-				return true
-			end
-		end
+		return true
 	end
 
 	return false

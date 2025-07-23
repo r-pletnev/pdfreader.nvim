@@ -16,12 +16,12 @@ protocol).
 
 ## 📋 Requirements
 
-* [Kitty terminal](https://github.com/kovidgoyal/kitty)
+* [Kitty terminal](https://github.com/kovidgoyal/kitty) or [Ghostty](https://ghostty.org/)
 * [Neovim](https://github.com/neovim/neovim) ≥ 0.9
 * [ImageMagick](https://github.com/ImageMagick/ImageMagick)
 * [poppler-utils](https://poppler.freedesktop.org/)
 
-If Kitty is unavailable, the plugin will automatically work in *text* mode only.
+If supported terminal is unavailable, the plugin will automatically work in *text* mode only.
 
 ## 📦 Installation
 
@@ -78,7 +78,7 @@ Command arguments are fully tab-completable.
 
 ## 🛠 Troubleshooting
 
-* **Blank buffer / no images** → ensure you are using Kitty and have installed ImageMagick and poppler-utils.
+* **Blank buffer / no images** → ensure you are using supported terminal and have installed ImageMagick and poppler-utils.
 * Consult `:messages` for detailed logs emitted by pdfreader.nvim.
 
 ## 🤝 Contributing

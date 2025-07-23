@@ -36,9 +36,9 @@ end
 
 function State:validate()
 	validation.check_depencencies()
-	if not validation.is_kitty_term() then
+	if not validation.is_supported_terminal() then
 		vim.notify(
-			"PDFReader DEPENDENCY MISSING ERROR: kitty terminal is require for image rendering - works only in text mode",
+			"PDFReader DEPENDENCY MISSING ERROR: kitty or ghostty terminal is require for image rendering - works only in text mode",
 			vim.log.levels.WARN
 		)
 		self:set_mode(utils.VIEW_MODES.text)
