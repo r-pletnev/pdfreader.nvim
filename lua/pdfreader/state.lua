@@ -97,19 +97,26 @@ end
 local function get_state_filepath()
 	local data_dir = get_data_dir()
 	if vim.fn.isdirectory(data_dir) == 0 then
-		vim.notify("PDFReader: data directory does not exists", vim.log.levels.ERROR)
-		return
+		local ok, err = pcall(vim.fn.mkdir, data_dir, "p")
+		if not ok then
+			vim.notify("PDFReader: data directory can not be create", vim.log.levels.ERROR)
+			vim.notify(string.format("Error: %s", err), vim.log.levels.ERROR)
+		end
+
+		return nil
 	end
 	local filepath = data_dir .. "/data.json"
 	if not vim.fn.filereadable(filepath) then
-		vim.notify(string.format("PDFReader: data file %s doesn't exists", filepath), vim.log.levels.ERROR)
-		return
+		return nil
 	end
 	return filepath
 end
 
 function State:load()
 	local filepath = get_state_filepath()
+	if filepath == nil then
+		return
+	end
 	local restored = utils.from_json(filepath)
 	if restored then
 		self.opts = restored.opts
@@ -155,6 +162,8 @@ function State:get_books(buffer)
 	return books
 end
 
+--#region telescope picker_functions
+
 ---Show bookmarks if the search for the book by filepath was successful
 ---@param buffer number
 ---@param filepath filepath
@@ -179,19 +188,6 @@ function State:show_bookmarks(buffer, filepath)
 	end)
 end
 
----Redraw book page on the current buffer
----@param filepath filepath
-function State:redraw(filepath)
-	local book = self:get_book(filepath)
-	if book == nil then
-		return
-	end
-	local bufnr = vim.fn.bufadd(filepath)
-	vim.fn.bufload(bufnr)
-	vim.api.nvim_win_set_buf(0, bufnr)
-	book:display_page(bufnr, nil, self.opts)
-end
-
 ---@param buffer number
 function State:show_recent_books(buffer)
 	pickers.telescope_recent_books_picker(self:get_books(buffer), function(preview_buffer, filepath)
@@ -208,6 +204,35 @@ function State:show_recent_books(buffer)
 			vim.api.nvim_win_set_buf(0, bufnr)
 		end
 	end)
+end
+
+---show table of content of current book in telescope picker
+---@param buffer number
+function State:show_toc(buffer, filename)
+	local book = self:get_book_from_buffer_var(buffer)
+	if book == nil then
+		return
+	end
+
+	local outlines = book:get_outlines(buffer)
+	if outlines then
+		pickers.telescope_toc_picker(book.filename, outlines, function(filepath) end)
+	end
+end
+
+--#endregion picker_functions
+
+---Redraw book page on the current buffer
+---@param filepath filepath
+function State:redraw(filepath)
+	local book = self:get_book(filepath)
+	if book == nil then
+		return
+	end
+	local bufnr = vim.fn.bufadd(filepath)
+	vim.fn.bufload(bufnr)
+	vim.api.nvim_win_set_buf(0, bufnr)
+	book:display_page(bufnr, nil, self.opts)
 end
 
 ---@param buffer number
