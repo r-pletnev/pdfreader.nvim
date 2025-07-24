@@ -157,26 +157,33 @@ function Book:display_page(bufnr, page_number, opts)
 		self.current_page_number = page_number
 		vim.schedule(function()
 			page:render(bufnr, self.scale)
-			self:show_statusline(opts)
+			self:show_statusline(bufnr, opts)
 		end)
 	end
 end
 
+---@param bufnr number
 ---@param opts pdfreader.Options
-function Book:show_statusline(opts)
-	vim.api.nvim_set_option_value(
-		"statusline",
-		string.format(
-			"Title: %s | Page: %s/%s | View Mode: %s",
-			self.filename,
-			self.current_page_number,
-			self.number_of_pages,
-			opts.mode == 0 and "standard" or opts.mode == 1 and "dark" or "text"
-		),
-		{
-			win = vim.api.nvim_get_current_win(),
-		}
-	)
+function Book:show_statusline(bufnr, opts)
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		if buf == bufnr then
+			vim.api.nvim_set_option_value(
+				"statusline",
+				string.format(
+					"Title: %s | Page: %s/%s | View Mode: %s",
+					self.filename,
+					self.current_page_number,
+					self.number_of_pages,
+					opts.mode == 0 and "standard" or opts.mode == 1 and "dark" or "text"
+				),
+				{
+					win = win,
+				}
+			)
+			--
+		end
+	end
 end
 
 function Book:zoom_in(scale_factor)
