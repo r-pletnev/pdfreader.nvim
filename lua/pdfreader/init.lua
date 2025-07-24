@@ -37,7 +37,7 @@ M.setup = function(opts)
 				end
 				book:zoom_in(5)
 				book:display_page(buffer, nil, state.opts)
-			end)
+			end, { buffer = buffer, desc = "Zoom in" })
 
 			vim.keymap.set("n", "q", function()
 				local book = state:get_book_from_buffer_var(buffer)
@@ -46,7 +46,7 @@ M.setup = function(opts)
 				end
 				book:zoom_out(5)
 				book:display_page(buffer, nil, state.opts)
-			end)
+			end, { buffer = buffer, desc = "Zoom out" })
 
 			vim.keymap.set("n", "e", function()
 				local book = state:get_book_from_buffer_var(buffer)
@@ -55,7 +55,7 @@ M.setup = function(opts)
 				end
 				book:zoom_reset()
 				book:display_page(buffer, nil, state.opts)
-			end)
+			end, { buffer = buffer, desc = "Zoom reset" })
 		end,
 	})
 	vim.api.nvim_create_autocmd({ "BufWriteCmd", "BufWritePre", "BufWritePost", "FileWritePre", "FileWritePost" }, {
