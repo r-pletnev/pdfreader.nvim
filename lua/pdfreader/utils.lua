@@ -80,6 +80,28 @@ M.convert_pdf_to_text = function(filepath, page_number)
 	return ""
 end
 
+---@param filepath filepath
+---@param last_page_number page_number
+---@return string|nil
+M.parse_outlines_from_pdf = function(filepath, last_page_number)
+	local cmd = {
+		"pdftohtml",
+		"-f",
+		last_page_number,
+		"-l",
+		last_page_number,
+		"-stdout",
+		"-i",
+		"-xml",
+		filepath,
+	}
+	local result = execute_system_command(cmd)
+	if result.code ~= 0 then
+		return nil
+	end
+	return result.stdout
+end
+
 ---@param current_page_number page_number
 ---@param last_page_number page_number
 ---@return page_number

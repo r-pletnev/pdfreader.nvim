@@ -159,6 +159,9 @@ function State:get_books(buffer)
 	for _, book in pairs(self.books) do
 		table.insert(books, book:to_ql_format(buffer))
 	end
+	table.sort(books, function(a, b)
+		return a.user_data.read_at > b.user_data.read_at
+	end)
 	return books
 end
 
@@ -208,7 +211,7 @@ end
 
 ---show table of content of current book in telescope picker
 ---@param buffer number
-function State:show_toc(buffer, filename)
+function State:show_toc(buffer)
 	local book = self:get_book_from_buffer_var(buffer)
 	if book == nil then
 		return
@@ -216,7 +219,9 @@ function State:show_toc(buffer, filename)
 
 	local outlines = book:get_outlines(buffer)
 	if outlines then
-		pickers.telescope_toc_picker(book.filename, outlines, function(filepath) end)
+		pickers.telescope_toc_picker(book.filename, outlines, function(page_number)
+			book:display_page(buffer, page_number, self.opts)
+		end)
 	end
 end
 
