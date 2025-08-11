@@ -117,6 +117,12 @@ local subcommand_tbl = {
 			state:redraw(filepath)
 		end,
 	},
+	["showToc"] = {
+		impl = function(state, args, opts)
+			local buffer = vim.api.nvim_get_current_buf()
+			state:show_toc(buffer)
+		end,
+	},
 }
 
 ---@param state pdfreader.State

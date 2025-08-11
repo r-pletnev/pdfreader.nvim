@@ -1,8 +1,9 @@
 local utils = require("pdfreader.utils")
-local Image = require("pdfreader.image") ---@type pdfreader.Image
+local Image = require("pdfreader.image")
 local ImagePage = require("pdfreader.pages.image")
 local TextPage = require("pdfreader.pages.text")
-local Bookmark = require("pdfreader.bookmarks") ---@type pdfreader.Bookmark
+local Bookmark = require("pdfreader.bookmarks")
+local tocParser = require("pdfreader.toc")
 
 ---@alias datetime string|osdate
 
@@ -186,6 +187,8 @@ function Book:show_statusline(bufnr, opts)
 	end
 end
 
+--- Increases the zoom scale for the book's pages
+---@param scale_factor number The amount to add to the current scale
 function Book:zoom_in(scale_factor)
 	local scale = self.scale or Image.DEFAULT_SCALE
 	self.scale = scale + scale_factor
@@ -227,6 +230,20 @@ function Book:get_bookmarks(buffer)
 	return marks
 end
 
+function Book:get_outlines(buffer)
+	local toc = utils.parse_outlines_from_pdf(self.filepath, self.number_of_pages)
+	if toc == nil then
+		vim.notify(string.format("PDFreader: ToC section not found in %s", self.filepath), vim.log.levels.WARN)
+		return
+	end
+	local nodes = tocParser.parse(toc)
+	local outlines = {}
+	for _, node in ipairs(nodes) do
+		table.insert(outlines, node:to_ql_format(buffer, self.filepath))
+	end
+	return outlines
+end
+
 function Book:to_ql_format(buffer)
 	return {
 		bufnr = buffer,
@@ -235,6 +252,7 @@ function Book:to_ql_format(buffer)
 			filename = self.filename,
 			filepath = self.filepath,
 			current_page_number = self.current_page_number,
+			read_at = self.read_at,
 		},
 	}
 end
