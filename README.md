@@ -6,7 +6,6 @@ protocol).
 ![demo](https://github.com/user-attachments/assets/5a98c65f-650b-4548-b130-ee3118ac5e86)
 
 ---
-
 ## ✨ Features
 
 * Render PDF pages in **standard**, **dark**, or **text-only** mode.
@@ -19,6 +18,7 @@ protocol).
 * [Kitty terminal](https://github.com/kovidgoyal/kitty) or [Ghostty](https://ghostty.org/)
 * [Neovim](https://github.com/neovim/neovim) ≥ 0.9
 * [ImageMagick](https://github.com/ImageMagick/ImageMagick)
+* [Ghostscript](https://ghostscript.com/) (ImageMagick requires it for PDF support)
 * [poppler-utils](https://poppler.freedesktop.org/)
 
 If supported terminal is unavailable, the plugin will automatically work in *text* mode only.
@@ -73,6 +73,7 @@ Open a PDF as you would any file:
 | `:PDFReader saveState`                              | Force save state |
 | `:PDFReader clearState`                             | Delete state & covers |
 | `:PDFReader redrawPage`                             | Re-render current page |
+| `:PDFReader showToc`                                | Show current book table of contents |
 
 Command arguments are fully tab-completable.
 
