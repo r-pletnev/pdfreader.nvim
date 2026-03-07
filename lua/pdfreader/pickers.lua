@@ -21,6 +21,7 @@ local previewers = require("telescope.previewers")
 local conf = require("telescope.config").values
 
 M.telescope_bookmark_picker = function(
+	filepath,
 	title,
 	bookmarks,
 	show_current_page,
@@ -65,12 +66,38 @@ M.telescope_bookmark_picker = function(
 					vim.schedule(show_bookmarks) -- reload picker
 				end)
 
+				map("i", "<C-q>", function()
+					local qf_items = vim.tbl_map(function(entry)
+						return {
+							filename = filepath,
+							lnum = entry.lnum,
+							text = entry.text or "-",
+						}
+					end, bookmarks)
+					vim.fn.setqflist(qf_items)
+					vim.cmd("copen")
+					vim.api.nvim_buf_set_keymap(0, "n", "<CR>", "", {
+						callback = function()
+							local idx = vim.fn.line(".") - 1
+							local items = vim.fn.getqflist({ items = true }).items
+							local item = items[idx + 1]
+							show_current_page(item.lnum)
+						end,
+						noremap = true,
+						silent = true,
+					})
+				end)
+
 				return true
 			end,
 		})
 		:find()
 end
 
+---comment
+---@param books pdfreader.Book[]
+---@param display_preview fun(preview_buffer: integer, filepath: string) Callback shows book cover
+---@param show_page fun(filepath: string) Callback opens particular book on the last page
 M.telescope_recent_books_picker = function(books, display_preview, show_page)
 	pickers
 		.new({}, {
@@ -94,23 +121,48 @@ M.telescope_recent_books_picker = function(books, display_preview, show_page)
 					display_preview(self.state.bufnr, filepath)
 				end,
 			}),
-			attach_mappings = function(prompt_bufnr)
+			attach_mappings = function(prompt_bufnr, map)
 				actions.select_default:replace(function()
 					actions.close(prompt_bufnr)
 					local selection = action_state.get_selected_entry().value
 					local filepath = selection.user_data.filepath
 					show_page(filepath)
 				end)
+
+				map("i", "<C-q>", function()
+					local qf_items = vim.tbl_map(function(entry)
+						return {
+							filename = entry.user_data.filepath,
+							lnum = entry.user_data.current_page_number,
+							text = entry.user_data.filename,
+							user_data = { filepath = entry.user_data.filepath },
+						}
+					end, books)
+					vim.fn.setqflist(qf_items)
+					vim.cmd("copen")
+					vim.api.nvim_buf_set_keymap(0, "n", "<CR>", "", {
+						callback = function()
+							local idx = vim.fn.line(".") - 1
+							local items = vim.fn.getqflist({ items = true }).items
+							local item = items[idx + 1]
+							show_page(item.user_data.filepath)
+						end,
+						noremap = true,
+						silent = true,
+					})
+				end)
+
 				return true
 			end,
 		})
 		:find()
 end
 
+---@param filepath string
 ---@param book_title string
 ---@param outlines pdfreader.OutlineNode[]
 ---@param show_page fun(page_number: integer) Callback that receives selected page number from ToC
-M.telescope_toc_picker = function(book_title, outlines, show_page)
+M.telescope_toc_picker = function(filepath, book_title, outlines, show_page)
 	local function flatten_outlines(nodes, depth)
 		local items = {}
 		depth = depth or 0
@@ -119,7 +171,7 @@ M.telescope_toc_picker = function(book_title, outlines, show_page)
 				text = node.text,
 				user_data = node.user_data,
 				depth = depth,
-				children = node.user_data.children
+				children = node.user_data.children,
 			}
 			table.insert(items, item)
 			if node.user_data.children and #node.user_data.children > 0 then
@@ -130,11 +182,13 @@ M.telescope_toc_picker = function(book_title, outlines, show_page)
 		return items
 	end
 
+	local flattened_outlines = flatten_outlines(outlines)
+
 	pickers
 		.new({}, {
 			prompt_title = string.format("ToC of %s", book_title),
 			finder = finders.new_table({
-				results = flatten_outlines(outlines),
+				results = flattened_outlines,
 				entry_maker = function(entry)
 					local prefix = string.rep("  ", entry.depth)
 					local display = string.format("%s- %s (page %d)", prefix, entry.text, entry.user_data.page_number)
@@ -163,6 +217,28 @@ M.telescope_toc_picker = function(book_title, outlines, show_page)
 						-- Currently just shows full hierarchy by default
 					end
 					actions.select_default(prompt_bufnr)
+				end)
+
+				map("i", "<C-q>", function()
+					local qf_items = vim.tbl_map(function(entry)
+						return {
+							filename = filepath,
+							lnum = entry.user_data.page_number,
+							text = entry.text,
+						}
+					end, flattened_outlines)
+					vim.fn.setqflist(qf_items)
+					vim.cmd("copen")
+					vim.api.nvim_buf_set_keymap(0, "n", "<CR>", "", {
+						callback = function()
+							local idx = vim.fn.line(".") - 1
+							local items = vim.fn.getqflist({ items = true }).items
+							local item = items[idx + 1]
+							show_page(item.lnum)
+						end,
+						noremap = true,
+						silent = true,
+					})
 				end)
 
 				return true

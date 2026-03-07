@@ -177,7 +177,7 @@ function State:show_bookmarks(buffer, filepath)
 		return
 	end
 	local bookmarks = book:get_bookmarks(buffer)
-	pickers.telescope_bookmark_picker(book.filename, bookmarks, function(page_number)
+	pickers.telescope_bookmark_picker(book.filename, book.filename, bookmarks, function(page_number)
 		book:display_page(buffer, page_number, self.opts)
 	end, function(page_number)
 		self:delete_bookmark(book, page_number)
@@ -201,10 +201,8 @@ function State:show_recent_books(buffer)
 	end, function(filepath)
 		local book = self:get_book(filepath)
 		if book then
-			local bufnr = vim.fn.bufadd(filepath)
-			book:save_to_buf_var(bufnr)
-			vim.fn.bufload(bufnr)
-			vim.api.nvim_win_set_buf(0, bufnr)
+			book:save_to_buf_var(buffer)
+			book:display_page(buffer, nil, self.opts)
 		end
 	end)
 end
@@ -219,7 +217,7 @@ function State:show_toc(buffer)
 
 	local outlines = book:get_outlines(buffer)
 	if outlines then
-		pickers.telescope_toc_picker(book.filename, outlines, function(page_number)
+		pickers.telescope_toc_picker(book.filename, book.filename, outlines, function(page_number)
 			book:display_page(buffer, page_number, self.opts)
 		end)
 	end
