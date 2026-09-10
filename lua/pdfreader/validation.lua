@@ -36,6 +36,10 @@ local dependencies = {
 		message = "PDFReader DEPENDENCY MISSING ERROR: 'pdftotext' not found in $PATH. Please install poppler-utils.",
 	},
 	{
+		command = "pdftoppm",
+		message = "PDFReader DEPENDENCY MISSING ERROR: 'pdftoppm' not found in $PATH. Please install poppler-utils.",
+	},
+	{
 		command = "pdfinfo",
 		message = "PDFReader DEPENDENCY MISSING ERROR: 'pdfinfo' not found $PATH. Please install poppler-utils.",
 	},

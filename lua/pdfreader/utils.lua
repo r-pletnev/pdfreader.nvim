@@ -11,30 +11,32 @@ M.VIEW_MODES = {
 ---@field height_px number
 ---@field dpi number snacks.image sizes placements as px / dpi * 96 * terminal scale
 
----@param input string
+---pdftoppm rasterizes glyphs at the final size, which stays crisper than
+---rendering at 200 dpi and downscaling. magick then only fixes up metadata
+---and applies dark mode.
+---@param input string "file.pdf[page_index]"
 ---@param output string
 ---@param mode mode
----@param fit? pdfreader.Fit resize the page so the terminal draws it 1:1
----@return table
-local function get_magick_cmd_presets(input, output, mode, fit)
-	local cmd = { "magick", "-density", "200", input, "-alpha", "remove" }
-	if mode == M.VIEW_MODES.dark then
-		vim.list_extend(cmd, { "-colorspace", "Gray", "-negate" })
-	end
+---@param fit? pdfreader.Fit size the page so the terminal draws it 1:1
+---@return table[] commands to run in order
+local function get_render_cmds(input, output, mode, fit)
+	local pdf, page_index = input:match("^(.*)%[(%d+)%]$")
+	local page = tostring(tonumber(page_index) + 1)
+	local prefix = output:gsub("%.png$", "")
+	local render = { "pdftoppm", "-f", page, "-l", page, "-png", "-singlefile" }
 	if fit then
-		vim.list_extend(cmd, {
-			"-filter",
-			"Lanczos",
-			"-resize",
-			string.format("x%d", fit.height_px),
-			"-units",
-			"PixelsPerInch",
-			"-density",
-			tostring(fit.dpi),
-		})
+		vim.list_extend(render, { "-scale-to-y", tostring(fit.height_px), "-scale-to-x", "-1" })
+	else
+		vim.list_extend(render, { "-r", "200" })
 	end
-	table.insert(cmd, output)
-	return cmd
+	vim.list_extend(render, { pdf, prefix })
+
+	local fixup = { "magick", output, "-units", "PixelsPerInch", "-density", tostring(fit and fit.dpi or 96) }
+	if mode == M.VIEW_MODES.dark then
+		vim.list_extend(fixup, { "-colorspace", "Gray", "-negate" })
+	end
+	table.insert(fixup, output)
+	return { render, fixup }
 end
 
 ---@param cmd table
@@ -47,15 +49,18 @@ local function execute_system_command(cmd)
 	return result
 end
 
----convert pdf to png by magick
----@param input_filepath string
+---convert one pdf page to png
+---@param input_filepath string "file.pdf[page_index]"
 ---@param output_filepath string
 ---@param config {mode: mode}
 ---@param fit? pdfreader.Fit
 ---@return string
 M.convert_pdf_to_png = function(input_filepath, output_filepath, config, fit)
-	local cmd = get_magick_cmd_presets(input_filepath, output_filepath, config.mode, fit)
-	execute_system_command(cmd)
+	for _, cmd in ipairs(get_render_cmds(input_filepath, output_filepath, config.mode, fit)) do
+		if execute_system_command(cmd).code ~= 0 then
+			break
+		end
+	end
 	return output_filepath
 end
 
