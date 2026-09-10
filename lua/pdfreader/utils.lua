@@ -7,35 +7,34 @@ M.VIEW_MODES = {
 	text = 2,
 }
 
+---@class pdfreader.Fit
+---@field height_px number
+---@field dpi number snacks.image sizes placements as px / dpi * 96 * terminal scale
+
 ---@param input string
 ---@param output string
 ---@param mode mode
+---@param fit? pdfreader.Fit resize the page so the terminal draws it 1:1
 ---@return table
-local function get_magick_cmd_presets(input, output, mode)
+local function get_magick_cmd_presets(input, output, mode, fit)
+	local cmd = { "magick", "-density", "200", input, "-alpha", "remove" }
 	if mode == M.VIEW_MODES.dark then
-		return {
-			"magick",
-			"-density",
-			"200",
-			input,
-			"-alpha",
-			"remove",
-			"-colorspace",
-			"Gray",
-			"-negate",
-			output,
-		}
-	else
-		return {
-			"magick",
-			"-density",
-			"200",
-			input,
-			"-alpha",
-			"remove",
-			output,
-		}
+		vim.list_extend(cmd, { "-colorspace", "Gray", "-negate" })
 	end
+	if fit then
+		vim.list_extend(cmd, {
+			"-filter",
+			"Lanczos",
+			"-resize",
+			string.format("x%d", fit.height_px),
+			"-units",
+			"PixelsPerInch",
+			"-density",
+			tostring(fit.dpi),
+		})
+	end
+	table.insert(cmd, output)
+	return cmd
 end
 
 ---@param cmd table
@@ -51,9 +50,11 @@ end
 ---convert pdf to png by magick
 ---@param input_filepath string
 ---@param output_filepath string
+---@param config {mode: mode}
+---@param fit? pdfreader.Fit
 ---@return string
-M.convert_pdf_to_png = function(input_filepath, output_filepath, config)
-	local cmd = get_magick_cmd_presets(input_filepath, output_filepath, config.mode)
+M.convert_pdf_to_png = function(input_filepath, output_filepath, config, fit)
+	local cmd = get_magick_cmd_presets(input_filepath, output_filepath, config.mode, fit)
 	execute_system_command(cmd)
 	return output_filepath
 end

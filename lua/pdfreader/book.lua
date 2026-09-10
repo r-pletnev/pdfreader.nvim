@@ -93,7 +93,7 @@ function Book:get_page(page_number, opts)
 	if opts.mode == utils.VIEW_MODES.text then
 		page = TextPage:new(self.filepath, page_number, opts)
 	else
-		page = ImagePage:new(self.filepath, page_number, opts)
+		page = ImagePage:new(self.filepath, page_number, opts, self:get_page_fit())
 	end
 
 	--TODO: Handle previous pages
@@ -112,6 +112,15 @@ function Book:get_page(page_number, opts)
 	-- end
 	self.pages[tostring(page_number)] = page
 	return page
+end
+
+---Pixel size the page will occupy on screen, so magick resizes it once with a
+---proper filter instead of the terminal downscaling a 200 dpi render on the GPU.
+---@return pdfreader.Fit
+function Book:get_page_fit()
+	local rows = self.scale or Image.DEFAULT_SCALE
+	local term = require("snacks.image.terminal").size()
+	return { height_px = math.floor(rows * term.cell_height), dpi = 96 * term.scale }
 end
 
 ---@param opts pdfreader.Options

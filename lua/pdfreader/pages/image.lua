@@ -10,11 +10,12 @@ ImagePage.__index = ImagePage
 ---@param filepath filepath
 ---@param page_number page_number
 ---@param opts pdfreader.Options
+---@param fit? pdfreader.Fit
 ---@return pdfreader.ImagePage
-function ImagePage:new(filepath, page_number, opts)
+function ImagePage:new(filepath, page_number, opts, fit)
 	local instance = setmetatable(self, ImagePage)
 	local src =
-		utils.convert_pdf_to_png(self.get_input_filepath(filepath, page_number), self.get_output_filepath(), opts)
+		utils.convert_pdf_to_png(self.get_input_filepath(filepath, page_number), self.get_output_filepath(), opts, fit)
 	instance.image = Image.new(src, opts)
 	instance.color_mode = opts.mode
 	instance.page_number = page_number
